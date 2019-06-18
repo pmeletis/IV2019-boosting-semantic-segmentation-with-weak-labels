@@ -12,9 +12,6 @@ import matplotlib.pyplot as plt
 
 from input_pipelines.heterogeneous_supervision.input_functions import train_input
 
-# PATH_MAPIL = ('/media/panos/data/datasets/mapillary'
-#               '/mapillary-vistas-dataset_public_v1.0/tfrecords/train.tfrecord')
-
 class params(object):
   # height_feature_extractor = 512
   # width_feature_extractor = 512

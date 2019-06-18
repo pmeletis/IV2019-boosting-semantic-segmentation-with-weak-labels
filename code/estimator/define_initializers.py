@@ -69,69 +69,6 @@ def train_init(config, params, scope='initializer'):
       # start from scratch or continue from log_dir
       return None, None
 
-    # previous_ckpt has priority over init_ckpt_path
-    # if previous_ckpt is provided then it can be a directory or a previous checkpoint
-    # and initialization is done accordingly
-    # if it is not provided then ...
-    # if params.previous_ckpt:
-    #   # TODO: assuming previous_ckpt doesn't have only train_ops variables
-    #   # collect variables that are not initialized from previous checkpoint
-    #   excluded = ['train_ops']
-    #   extra_vars_to_initialize = []
-    #   for var in tf.global_variables():
-    #     for exc in excluded:
-    #       if exc in var.op.name:
-    #         extra_vars_to_initialize.append(var)
-    #   extra_init_op = tf.variables_initializer(extra_vars_to_initialize)
-    #   #print('debug:extra_init_op:', extra_init_op)
-
-    #   if os.path.isdir(params.previous_ckpt):
-    #     # WARNING: by this line TF has created a new checkpoint, so the name
-    #     #   returned is of the new checkpoint, e.g. model.ckpt-<old_step + 1>
-    #     checkpoint_path = tf.train.latest_checkpoint(params.previous_ckpt)
-    #   elif os.path.isfile(params.previous_ckpt + '.meta'):
-    #     assert False, 'Resuming training from specific checkpoint is not supported yet by TF Estimator API.'
-    #     #checkpoint_path = params.previous_ckpt
-    #   else:
-    #     assert False, 'Error in train_init.' #, possible both previous_ckpt and init_ckpt_path are None.'
-    #   print('debug:checkpoint:', checkpoint_path)
-
-    #   return extra_init_op, None
-
-    # if params.init_ckpt_path:
-    #   checkpoint_path = params.init_ckpt_path
-    #   print('debug:checkpoint:', checkpoint_path)
-    #   # don't restore vars containing those strings
-    #   exclude = [get_unique_variable_by_name_without_creating('global_step').op.name,
-    #              'ExponentialMovingAverage',
-    #              'Momentum',
-    #              'classifier',
-    #              'extension']
-
-    #   objects_to_restore = {}
-    #   for var in get_saveable_objects_list(tf.get_default_graph()):
-    #     for exc in exclude:
-    #       if exc in var.op.name:
-    #         break
-    #     else:
-    #       objects_to_restore[var.op.name[len('feature_extractor/base')+1:]] = var
-
-    #   #for key in sorted(objects_to_restore):
-    #   #  print('to restore:', key) #, objects_to_restore[key].op.name)
-
-    #   init_op, init_feed_dict = slim.assign_from_checkpoint(checkpoint_path, objects_to_restore)
-
-    #   # collect variables that are not initialized from imagenet model
-    #   extra_vars_to_initialize = []
-    #   for var in tf.global_variables():
-    #     for exc in exclude:
-    #       if exc in var.op.name:
-    #         extra_vars_to_initialize.append(var)
-    #   extra_init_op = tf.variables_initializer(extra_vars_to_initialize)
-    #   init_op = tf.group(init_op, extra_init_op)
-
-    #   return init_op, init_feed_dict
-
 def replace_initializers(config, params, scope='replaced_initializers'):
   # currently supported initialization:
   #   0) start training from scratch

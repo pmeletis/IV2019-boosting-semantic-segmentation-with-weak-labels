@@ -52,22 +52,8 @@ def define_estimator(mode, features, labels, model_fn, config, params):
     ...
   """
 
-  ## arguments assertions: make sure that everything used by this function
-  ##   is provided correctly
-  # arguments assertions
-  # assert mode and config and params, (
-  #   'For now mode, config and params must be provided.')
   assert mode in _ALLOWED_MODES, (
       'mode should be TRAIN, EVAL or PREDICT from tf.estimator.ModeKeys.')
-  # assert features and labels, (
-  #   'Basic assertion for features and labels. '
-  #   'To be elaborated later, so errors are thrown from this point for safety.')
-  # attrs = ['model', 'sfe', 'batch_norm_accumulate_statistics',
-  #          'projection_dims', 'classifier_rate',
-  #          'classifier_kernel', 'config', 'upsample']
-  # for attr in attrs:
-  #   assert hasattr(params, attr), 'params must have ' + attr + 'attribute.'
-  # model assertions
   assert params.name_feature_extractor in {'resnet_v1_50', 'resnet_v1_101'}, (
       'params must have name_feature_extractor attribute in resnet_v1_{50,101}.')
   if params.name_feature_extractor == 'resnet_v1_101':
@@ -79,8 +65,6 @@ def define_estimator(mode, features, labels, model_fn, config, params):
   rawimagespaths = features['rawimagespaths'] if 'rawimagespaths' in features.keys() else None
   proimages = features['proimages']
   prolabels = labels if labels else None
-
-  # print('debug:rawimages, proimages, prolabels:', rawimages, proimages, prolabels)
 
   ## build a fully convolutional model for semantic segmentation
   # predictions refer to the training class ids
@@ -109,19 +93,6 @@ def define_estimator(mode, features, labels, model_fn, config, params):
     #   before total_loss in every step, but doesn't give any guarantee
     #   for running after some other op, and since ema need to be run
     #   after applying the gradients maybe this code needs checking
-    # TODO(panos): variables should be in the MODEL_VARIABLES collection in order to
-    #   be taken with emas
-    # TODO(panos): investigate: in the distributed setting mirrored variables are not
-    #   saved as extra variables but are computed per device and then reduced
-    #   so practically emas should only be saved for one set of per device variables
-    #   since broadcasting updates them in every step, here we chose /gpu:0 since
-    #   it is most of the times the empty device (no linux processes on it)
-    # next line for distributed debugging
-    # distribution_strategy = tf.contrib.distribute.get_tower_context()
-    # TODO(panos): assuming that /gpu:0 is always used and is the "empty" gpu
-    # TODO(panos): find out why in a distribution.scope() tf.device doesn't work
-    #   and this code needs to put variables in a specific tower locality
-    # running_on_gpu0 = 'gpu:0' in  tf.contrib.distribute.get_tower_context().device.lower()
     if params.ema_decay > 0:
       with tf.variable_scope('exponential_moving_averages'):
         #for mv in slim.get_model_variables():
@@ -170,16 +141,6 @@ def define_estimator(mode, features, labels, model_fn, config, params):
       print(f"Tower {tower_context.tower_id}: _RunMetadataHook is not supported "
             "yet for distributed training.")
       training_hooks = []
-
-    # for gv in tf.global_variables():
-    #   if isinstance(gv, TowerLocalVariable):
-    #     print('T', end='')
-    #   elif isinstance(gv, MirroredVariable):
-    #     print('M', end='')
-    #   else:
-    #     NotImplementedError()
-    #   for d, v in gv._index.items():
-    #     print('  ', d, v.op.name)
 
     replace_initializers(config, params)
 
@@ -435,21 +396,6 @@ def _define_summaries(mode, config, params, summaries_data):
     tf.summary.scalar('mIoU', m_iou_per_pixel, family='metrics')
 
     tf.summary.scalar('learning_rate', summaries_data['learning_rate'], family='optimizer')
-
-    #variables_to_summarize = slim.get_variables()
-    #for var in variables_to_summarize:
-      #if ('classifier' in var.op.name) and ('Momentum' not in var.op.name):
-        ##tf.summary.histogram(var.op.name + '/summary', var)
-        #pass
-      #else:
-        #pass
-
-    # misc summaries
-    # ups_filter is a 4D Tensor: 16x16x1x1
-    #ups_filter = get_unique_variable_by_name_without_creating('classifier/upsampling_shared/weights')
-    #if ups_filter:
-      #tf.summary.image('ups_filter/kernel', ups_filter.value()[tf.newaxis,...,0])
-      #tf.summary.scalar('ups_filter/bias', get_unique_variable_by_name_without_creating('classifier/upsampling_shared/biases').value()[0])
 
 def _cids2col(cids, palette):
   # cids: Nb x H x W, tf.int32, with class ids in [0,Nc-1]

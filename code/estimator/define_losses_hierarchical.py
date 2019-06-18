@@ -98,29 +98,13 @@ def define_losses(mode, predictions, labels, config, params): # pylint: disable=
     per_bbox_labels = labels['prolabels_per_bbox']
     per_image_labels = labels['prolabels_per_image']
     l1_per_pixel_labels = tf.gather(per_pixel_cids2l1_cids, per_pixel_labels)
-    # l1_per_pixel_labels_onehot = tf.one_hot(l1_per_pixel_labels, tf.reduce_max(per_pixel_cids2l1_cids)+1)
     # dummy labels, will be masked during loss computation by weights
     l1_per_bbox_labels = tf.constant(
         -1000, dtype=tf.int32, shape=(Nb_per_bbox, *l1_per_pixel_labels.shape[1:]))
     l1_per_image_labels = tf.constant(
         -1000, dtype=tf.int32, shape=(Nb_per_image, *l1_per_pixel_labels.shape[1:]))
-    # l1_per_bbox_labels_hot = _segment_sum(per_bbox_labels, per_bbox_cids2l1_cids, tf.reduce_max(per_bbox_cids2l1_cids)+1)
     l1_labels = tf.concat([l1_per_pixel_labels, l1_per_bbox_labels, l1_per_image_labels], 0)
-    # l1_labels_hot = tf.concat([l1_per_pixel_labels_onehot, l1_per_bbox_labels_hot], 0)
-    #for sone reason l1_labels_hot is not always in [0, 1] so clip it
-    # l1_labels_hot = tf.clip_by_value(l1_labels_hot, 0., 1.)
-    # print(l1_labels, Nb_per_pixel, Nb_per_bbox)
     l1_labels = tf.stop_gradient(l1_labels) # tf.int32, (H, W), with indices
-    # l1_labels_hot = tf.stop_gradient(l1_labels_hot) # tf.float32, (H, W, C) with multi-hot probs
-
-    # tf.abs tf.ones_like(l1_labels_hot)[..., 0]tf.ones_like(l1_labels_hot)[..., 0] - tf.reduce_sum(l1_labels_hot, axis=-1)
-    # debug assertion
-    # with tf.control_dependencies([
-    #     tf.assert_equal(
-    #         tf.reduce_sum(l1_labels_hot, axis=-1),
-    #         tf.ones_like(l1_labels_hot)[..., 0])]):
-    #         tf.cond()
-    #   l1_labels_hot = tf.identity(l1_labels_hot)
 
     ## labels for the vehicle l2 classifier
     l2_vehicle_per_pixel_labels = tf.gather(per_pixel_cids2vehicle_cids, per_pixel_labels)
@@ -148,26 +132,12 @@ def define_losses(mode, predictions, labels, config, params): # pylint: disable=
           labels=l1_per_pixel_labels,
           logits=l1_logits[:Nb_per_pixel, ...],
           name="l1")
-    #   l1_raw_loss_hot = tf.nn.softmax_cross_entropy_with_logits(
-    #       labels=l1_labels_hot,
-    #       logits=l1_logits,
-    #       name="l1")
       l1_per_pixel_weights = tf.cast(l1_per_pixel_labels <= tf.reduce_max(per_pixel_cids2l1_cids)-1, tf.float32)
-    #   l1_per_pixel_weights_onehot = 1.0 - l1_per_pixel_labels_onehot[..., -1]
       l1_per_bbox_weights = tf.zeros(tf.shape(per_bbox_labels)[:-1])
-      # collect weak labels loss if not void and is useful class
-    #   l1_per_bbox_weights_hot = tf.logical_and(
-    #       tf.reduce_any(tf.greater(per_bbox_labels[..., :-1], 0.001), axis=-1),
-    #       tf.logical_or(
-    #           tf.greater(tf.reduce_max(l2_vehicle_probabilities[Nb_per_pixel:, ..., :-1], axis=-1), 0.99),
-    #           tf.greater(tf.reduce_max(l2_human_probabilities[Nb_per_pixel:, ..., :-1], axis=-1), 0.99)))
-    #   l1_per_bbox_weights_hot = tf.cast(l1_per_bbox_weights_hot, tf.float32)
       l1_weights = tf.concat([l1_per_pixel_weights, l1_per_bbox_weights], 0)
-    #   l1_weights_hot = tf.concat([l1_per_pixel_weights_onehot, l1_per_bbox_weights_hot], 0)
 
       # debug summary
       tf.summary.image('l1_weights', l1_weights[..., tf.newaxis], max_outputs=100, family='debug')
-    #   tf.summary.image('l1_weights_hot', l1_weights_hot[..., tf.newaxis], max_outputs=100, family='debug')
 
     ## l2 losses per classifier: for per_pixel and weak labels (open images)
     # all examples from per_pixel must accumulate loss, but only the examples from open images

@@ -24,15 +24,3 @@ def define_optimizer(global_step, params):
     assert False, 'Unknown option for optimizer.'
 
   return optimizer
-
-  # elif params.learning_rate_schedule=='exponential_decay':
-  #   assert False, 'Not tested...'
-  #   params.Ne_per_decay = 12
-  #   params.num_batches_per_decay = int(params.num_batches_per_epoch * params.Ne_per_decay)
-  #   params.learning_rate_dacay_steps = int(params.Ne // params.Ne_per_decay) # results learning_rate_dacay_steps + 1 different learning rates
-  #   #params.staircase = False
-  #  #elif params.learning_rate_schedule=='polynomial_decay':
-  #   #params.end_learning_rate = 0.001
-  #   #params.Ne_per_decay = params.Ne - 2 # 2 epochs for training with end_learning_rate
-  #   #params.num_batches_per_decay = int(params.num_batches_per_epoch * params.Ne_per_decay)
-  #   #params.power = 0.6
