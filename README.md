@@ -5,11 +5,13 @@ __Panagiotis Meletis and Gijs Dubbelman (2019)__ _On Boosting Semantic Street Sc
 
 If you find our work useful for your research, please cite the following paper:
 ```
-...
+@article{meletis2019boosting,
+  title={On Boosting Semantic Street Scene Segmentation with Weak Supervision},
+  author={Meletis, Panagiotis and Dubbelman, Gijs},
+  journal={arXiv preprint arXiv:1903.03462},
+  year={2019}
+}
 ```
 
 # Code usage
 See [here](code/README.md).
-
-# Paper summary
-...
